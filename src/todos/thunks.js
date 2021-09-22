@@ -17,7 +17,6 @@ export const loadTodos = () => async (dispatch) => {
     } catch (e) {
         dispatch(loadTodosFailure());
         dispatch(displayAlert(e));
-        console.log(e);
     }
 }
 
@@ -35,7 +34,6 @@ export const addTodoRequest = text => async dispatch => {
         dispatch(createTodo(todo));
     } catch (e) {
         dispatch(displayAlert(e));
-        console.log(e);
     }
 }
 
@@ -50,7 +48,28 @@ export const removeTodoRequest = id => async dispatch => {
         dispatch(removeTodo(removedTodo));
     } catch (e) {
         dispatch(displayAlert(e));
-        console.log(e);
+    }
+}
+
+export const deleteCompletedTodosRequest = todos => async dispatch => {
+    try {
+        const ids = todos.map(t => t.id);
+        const promiseBag = [];
+        for (const id of ids) {
+            promiseBag.push(await fetch(`http://localhost:8080/todos/${id}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                },method: 'delete'
+            }))
+        }
+        
+        const deletedTodos = await Promise.resolve(promiseBag);
+        for (const todo of deletedTodos) {
+            const formattedTodo = await todo.json();
+            dispatch(removeTodo(formattedTodo));
+        }
+    } catch (e) {
+        dispatch(displayAlert(e));
     }
 }
 
@@ -63,7 +82,6 @@ export const markTodoAsCompletedRequest = id => async dispatch => {
         dispatch(dispatch(markTodoAsCompleted(completedTodo)));
     } catch (e) {
         dispatch(displayAlert(e));
-        console.log(e);
     }
 }
 export const displayAlert = text => () => {
